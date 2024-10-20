@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Terminal</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      ::-webkit-scrollbar {
+        display: none;
+        appearance: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="terminal"></div>
+  </body>
+  <script src="https://cdn.jsdelivr.net/npm/xterm/lib/xterm.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.7.0/lib/xterm-addon-fit.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.1.3/socket.io.min.js"></script>
+  <script>
+    //xterm terminal initalization
+    const terminal = new Terminal();
+    terminal.open(document.getElementById("terminal"));
+
+    //socket.io connection
+    const socket = io();
+
+    //writing to terminal
+    socket.on("output", (data) => {
+      terminal.write(data);
+    });
+
+    let command = "";
+    //sending to backend
+    terminal.onData((data) => {
+      if (data.charCodeAt(0) === 13) {
+        if (command.trim() === "cls" || command.trim() === "clear") {
+          terminal.clear();
+          socket.emit("clear");
+        } else {
+          if (command.length > 0) {
+            socket.emit("input", command.trim());
+            command = "";
+            terminal.write("\r\n");
+          }
+        }
+      } else if (data.charCodeAt(0) === 127) {
+        if (command.length > 0) {
+          command = command.slice(0, -1);
+          terminal.write("\b \b");
+        }
+      } else {
+        command += data;
+        terminal.write(data);
+      }
+    });
+  </script>
+</html>
