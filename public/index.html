@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Terminal</title>
+    <title>Web Terminal</title>
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/xterm/css/xterm.css"
@@ -14,9 +14,10 @@
         padding: 0;
         box-sizing: border-box;
       }
-      ::-webkit-scrollbar {
-        display: none;
-        appearance: none;
+      #terminal {
+        width: 100%;
+        height: 100vh;
+        background-color: #1e1e1e;
       }
     </style>
   </head>
@@ -29,7 +30,13 @@
   <script>
     //xterm terminal initalization
     const terminal = new Terminal();
+    const fitAddon = new FitAddon.FitAddon();
+    terminal.loadAddon(fitAddon);
+
     terminal.open(document.getElementById("terminal"));
+    fitAddon.fit(); // Fit the terminal to the container size
+
+    terminal.focus(); // Focus the terminal for user input
 
     //socket.io connection
     const socket = io();
@@ -54,14 +61,21 @@
           }
         }
       } else if (data.charCodeAt(0) === 127) {
+        // Handle backspace
         if (command.length > 0) {
           command = command.slice(0, -1);
           terminal.write("\b \b");
         }
       } else {
+        // Handle normal character input
         command += data;
         terminal.write(data);
       }
     });
+
+    // Resize the terminal when window size changes
+    window.addEventListener("resize", () => {
+      fitAddon.fit();
+    });
   </script>
-</html>
+</h
